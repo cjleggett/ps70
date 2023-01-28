@@ -3,6 +3,8 @@ h1 { font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Type
 body {
     padding-top: 1em;
     margin-left: 20px;
+    margin-right: 20px;
+    margin-bottom: 20px;
     font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace;
 }
 
@@ -50,11 +52,21 @@ body {
 }
 
 #projects {
-    animation: fadeIn 10s;
+    animation: fadeIn 9s;
 }
 
 @keyframes fadeIn {
     0% { opacity: 0; }
     66% {opacity: 0; }
     100% { opacity: 1; }
+}
+
+.carousel-inner > .item > img,
+  .carousel-inner > .item > a > img {
+    width: 70%;
+    margin: auto;
+  }
+
+.half {
+    width: 50%;
 }
