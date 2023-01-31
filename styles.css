@@ -8,26 +8,25 @@ body {
     font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace;
 }
 
-.typed{
-    overflow: hidden;
+.typeSetUp {
     border-right: .15em solid transparent;
     white-space: nowrap;
+    font-size: 1.6rem;
+    width: 0;
+}
+
+.typed{
+    overflow: hidden;
     animation: 
         typing 1s steps(20, end) forwards,
         blink-caret .75s step-end 4;
-    font-size: 1.6rem;
-    width: 0;
   }
 
 .typed2{
     overflow: hidden;
-    border-right: .15em solid transparent;
-    white-space: nowrap;
     animation: 
         typing 2s steps(40, end) forwards,
         blink-caret .75s step-end 5;
-    font-size: 1.6rem;
-    width: 0;
     animation-delay: 3s;
 }
 
@@ -51,7 +50,7 @@ body {
     display: inline-block;
 }
 
-#projects {
+.appear {
     animation: fadeIn 9s;
 }
 
