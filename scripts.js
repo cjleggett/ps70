@@ -4,7 +4,10 @@ const first = urlParams.get('first');
 if (first !== "False") {
     console.log("block");
     let proj = document.getElementById("projects");
-    proj.classList.add("appear");
+    console.log(proj.children)
+    Array.from(proj.children).forEach((elt, i) => {
+        elt.classList.add(`appear${i + 1}`)
+    });
     let title = document.getElementById("title");
     title.classList.add("typed");
     let intro = document.getElementById("intro");

@@ -1,5 +1,7 @@
 h1 { font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace; font-size: 24px; font-style: normal; font-variant: normal; font-weight: 700; line-height: 26.4px; } h3 { font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace; font-size: 14px; font-style: normal; font-variant: normal; font-weight: 700; line-height: 15.4px; } p { font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace; font-size: 14px; font-style: normal; font-variant: normal; font-weight: 400; line-height: 20px; } blockquote { font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace; font-size: 21px; font-style: normal; font-variant: normal; font-weight: 400; line-height: 30px; } pre { font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace; font-size: 13px; font-style: normal; font-variant: normal; font-weight: 400; line-height: 18.5714px; }
 
+h2 { font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace; font-size: 19px; font-style: normal; font-variant: normal; font-weight: 700; line-height: 15.4px; }
+
 body {
     padding-top: 1em;
     margin-left: 20px;
@@ -50,19 +52,29 @@ body {
     display: inline-block;
 }
 
-.appear {
+.appear1 {
     animation: fadeIn 9s;
+}
+
+.appear2 {
+    animation: fadeIn 9.25s;
 }
 
 @keyframes fadeIn {
     0% { opacity: 0; }
     66% {opacity: 0; }
+    80% {opacity: 1; }
     100% { opacity: 1; }
+}
+
+.light {
+    color: black
 }
 
 .carousel-inner > .item > img,
   .carousel-inner > .item > a > img {
-    width: 70%;
+    width: auto;
+    height: 400px;
     margin: auto;
   }
 
