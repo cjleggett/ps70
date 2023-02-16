@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>Connor x PS70</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <link rel="icon" href="../images/favicon.ico">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" href="../styles.css">
+
+  </head>
+  <body>
+    <a href="../index.html?first=False"><button>Back to Home</button></a>
+
+    <h1>Week 3: Hand Tools and Fabrication</h1>
+
+    <p>The two main topics this week were: </p>
+    <ol>
+      <li>Using hand tools to create parts</li>
+      <li>Building circuits to make things move</li>
+    </ol>
+    <p>This week was quite a bit harder than the last one for me because I have never done any real work with circuits or electricity, but hopefully I'll improve on this with time!</p>
+
+    <h2>Project Goal: Knee Model</h2>
+
+    <p>One of my final project ideas involves building a project that will track knee motion and report the range of motion in order to help with physical therapy. In order to build towards this, I thought it could be helpful to build a model of a knee's motion that I could build upon in the future. Since right now I'm working on patellar tendon repair, I decided to model how the patellar tendon works. As illustrated in the gif below, when the quad muscle loosens, the patellar (knee cap) is allowed to slip downwards, which in turn relaxes the patellar tendon and tibia down, allowing the knee to bend. This process is reversed when the quad tightens, pulling the patellar back up and straightening the leg.</p>
+    <img src="../images/week3/knee.gif" alt="knee gif">
+
+    <h2>The Plan</h2>
+    <p>This model will differ from the actual human body in several key ways. First, I have no way at the moment to 3d print parts, which will mean some 3-dimensional parts will have to be a little flatter than normal. Second, I don't know how to simulate the tightening of a quad muscle, so I plan on simply pulling a rubber band with a string attached to a motor, as the pulling motion will tighten the rubber band and hopefully give the same approximate result. Below is a sketch of what I plan to use:</p>
+    <img class="img-thumbnail half" src="../images/week3/diagram0.jpg" alt="knee diagram">
+
+    <h2>The Process</h2>
+<p>I began by cutting wooden blocks to form the knee itself. I used a hand saw to cut these as we didn't have a table saw as far as I could tell. I also used a sander to round out the edge a bit to make the bend smoother.</p>
+    
+    <img class="img-thumbnail half" src="../images/week3/saw.JPG" alt="knee diagram">
+
+    <p>Then I used the laser cutter on some thin wood to create a circular patella with holes in it for attaching tendons, as well as a more elliptical shape to make a lower leg and foot. I attached the foot to leg using wood glue, and I wanted to just use knots to attach rubber bands to the holes, but those ended up rubbing up to much against the wood and preventing motion, so I eventually used hot glue, which improved motion but makes the project look much worse.</p>
+
+    
+
+    <img class="img-thumbnail half" src="../images/week3/patella.png" alt="knee diagram">
+    <img class="img-thumbnail half" src="../images/week3/tibia_foot.png" alt="knee diagram">
+    <img class="img-thumbnail half" src="../images/week3/attach.JPG" alt="knee diagram">
+
+    <p>Next, I screwed the "knee cap" onto a scrab slab of wood to anchor everything down. It was good to get to use the drill and screws to hold things together!</p>
+
+    <p>Then, I incorporated the motor by soldering wires to it. As you can see in the picture, the first wire attachment was essentially a giant glob of solder, but the second one got a little bit neater at least.</p>
+
+    <img class="img-thumbnail half" src="../images/week3/sold_setup.JPG" alt="knee diagram">
+    <img class="img-thumbnail half" src="../images/week3/sold_finish.JPG" alt="knee diagram">
+
+    <p>Next, I glued the motor to the board, stuck the breadboard on, and added a potentiometer. Now it was starting to work!</p>
+
+    <h2>The Product</h2>
+
+    <p>The knee ends up extending!</p>
+    
+
+    <img class="img-thumbnail half" src="../images/week3/product.gif" alt="knee diagram">
+
+    <p>And here's a final picture</p>
+    <img class="img-thumbnail half" src="../images/week3/tibia_foot.png" alt="knee diagram">
+
+    <p>We also had to use the multimeter to find the voltage of our circuit, and then use that to find the current. </p>
+    <ul>
+      <li>Voltage: 5 volts</li>
+      <li>Resistance: -15.52 million Ohms</li>
+      <li>So we can say that the current is I = V / R = 5 / 15520000 = .000000322 Amps!</li>
+    </ul>
+    
+
+  
+
+
+    
+
+
+
+    
+
+
+  </body>
+</html>
