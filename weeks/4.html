@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
+
   <link rel="stylesheet" href="../styles.css">
 
   </head>
@@ -33,8 +35,6 @@
         <ol class="carousel-indicators">
           <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
           <li data-target="#myCarousel" data-slide-to="1"></li>
-          <li data-target="#myCarousel" data-slide-to="2"></li>
-          <li data-target="#myCarousel" data-slide-to="3"></li>
         </ol>
     
         <!-- Wrapper for slides -->
@@ -67,8 +67,293 @@
         </a>
       </div>
     </div>
+
+    <h2>The Process</h2>
+
+    <p>My goal for the start was to simply get the User's turn working. This meant I would have to set up three buttons, detect when the buttons are pressed, and switch the lights in that case. Once everything was set up physically, I went to program this. I made separate classes for the light and the buttons, which was especially helpful for the buttons since there were three of them and it helped me not repeat code!</p>
+
+    <div class="container">
+      <div class="row">
+          <div class="col-xs-6">
+            <p>Button Code:</p>
+            <pre class="prettyprint lang-cpp">
+Button :: Button(int pin_number)
+{
+  pin = pin_number;
+  previousState = false;
+}
+
+// detects switches from pressed to unpressed or vice versa
+// returns true if now it's pressed, false otherwise
+bool Button :: detectStart(){
+  bool buttonState = digitalRead(pin) == 1;
+  if (buttonState != previousState) {
+    previousState = buttonState;
+    return buttonState;
+  }
+  return false;
+}
+            </pre>
+          </div>
+          <div class="col-xs-6">
+            <p>Light Code:</p>
+            <pre class="prettyprint lang-cpp">
+RGBLight :: RGBLight(int redPin1, long bluePin1, long greenPin1)
+{
+  redPin = redPin1;
+  bluePin = bluePin1;
+  greenPin = greenPin1;
+  pinMode(redPin, OUTPUT);
+  pinMode(greenPin, OUTPUT);
+  pinMode(bluePin, OUTPUT);
+}
+
+// Switches color of light display
+void RGBLight :: switchColor(int redValue, int greenValue, int blueValue)
+{
+  analogWrite(redPin, redValue);
+  analogWrite(greenPin, greenValue);
+  analogWrite(bluePin, blueValue);
+}
+
+void RGBLight :: off()
+{
+  switchColor(0, 0, 0);
+}
+            </pre>
+          </div>
+      </div>
+  </div>
+    
+    
     
 
+    <p>At this point, after some debugging, the buttons started working!</p>
+
+    <iframe width="393" height="699" src="https://www.youtube.com/embed/gICQzEvBQCY" title="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
+    <p>Next, I decided the light wouldn't be enough to make the game fun and interesting, and also that it could be difficult for colorblind people, so I decided to add some sound. I got a buzzer, connected it to the arduino as shown in the sketch below, and wrote another class for the buzzer.</p>
+
+    <div class="container">
+      <div class="row">
+          <div class="col-xs-6">
+            <img class="img-thumbnail" src="../images/week4/buzzer_circuit.JPG" alt="buzzer circuit">
+          </div>
+          <div class="col-xs-6">
+            <pre class="prettyprint lang-cpp">
+Buzzer :: Buzzer(int buzzerPinIn)
+{
+  buzzerPin = buzzerPinIn;
+  pinMode(buzzerPin, OUTPUT);
+}
+
+// Plays note at specified frrequency for specified length
+void Buzzer :: playNote(float newFrequency, long newDuration)
+{
+  duration = newDuration;
+  frequency = newFrequency;
+  lastTime = millis();
+  tone(buzzerPin, frequency);
+}
+
+// Hard resets the buzzer to off
+void Buzzer :: off() {
+  noTone(buzzerPin);
+  duration = 0;
+}
+
+void Buzzer :: update()
+{
+  if (millis() - lastTime > duration) {
+    noTone(buzzerPin);
+  }
+}
+                  </pre>
+          </div>
+      </div>
+  </div>
+
+  I then used a chart matching musical notes to frequencies to build out a file with the notes I wanted to play and their frequencies:
+
+  <div class="container">
+    <div class="row">
+        <div class="col-xs-6">
+          <img class="img-thumbnail" src="../images/week4/notes_to_frequencies.png" alt="buzzer circuit">
+        </div>
+        <div class="col-xs-6">
+          <pre class="prettyprint lang-cpp">
+#define B2 123.47
+#define C3 130.81
+#define CSHARP3 138.59
+#define D3 146.83
+#define C4 261.63
+#define E4 329.63
+#define G4 392.00
+#define D5 587.33
+#define A5 880.00
+                </pre>
+        </div>
+    </div>
+</div>
+
+  
+<p>This got working after some debugging too!</p>
+  
+
+  <iframe width="393" height="699" src="https://www.youtube.com/embed/imNYjBE8OOI" title="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
+  <p>Finally, I had to set up the actual game part. I tried to avoid it for a while, but I ended up using <code>&lt;delay&gt;</code> for sections where the user should not do anything. This was probably the part where I struggled most with the coding part, both at first just trying to make it work, and afterword when I went through and split my code up into different files and created functions to avoid redundancy.</p>
+
+  <pre class="prettyprint lang-cpp pre-scrollable">
+#include "notes.h"
+#include "RGBLight.h"
+#include "Buzzer.h"
+#include "Button.h"
+
+RGBLight light = RGBLight(5, 7, 6);
+Buzzer buzz = Buzzer(9);
+Button redButton = Button(12);
+Button yellowButton = Button(11);
+Button blueButton = Button(10);
+
+bool userTurn;
+int trueSequence[50];
+int sequenceLength;
+int userLength;
+
+// Resets game to length of 1
+void reset() {
+  sequenceLength = 0;
+  buzz.off();
+  light.off();
+  nextRound();
+}
+
+// Creates new sequence of greater length
+void makeSequence() {
+  sequenceLength ++;
+  userLength = 0;
+  trueSequence[0] = random(3);
+  for (int i = 1; i < sequenceLength; i++) {
+    int newRand = random(3);
+    while (newRand == trueSequence[i - 1]) {
+      newRand = random(3);
+    }
+    trueSequence[i] = newRand;
+  }
+}
+
+// Plays the new sequence for the user to memorize
+void playSequence() {
+  for (int i = 0; i < sequenceLength; i++) {
+    int value = trueSequence[i];
+    if (value == 0) {
+      noteLightDelay(C4, 255, 0, 0, 1000);
+    }
+    if (value == 1) {
+      noteLightDelay(E4, 255, 100, 0, 1000);
+    }
+    if (value == 2) {
+      noteLightDelay(G4, 0, 0, 255, 1000);
+    }
+  }
+  buzz.off();
+  light.off();
+  userTurn = true;
+}
+
+// Moves to the next round
+void nextRound() {
+  makeSequence();
+  delay(1000);
+  buzz.off();
+  light.off();
+  delay(1000);
+}
+
+// Plays a note and displays a light for a specified amount of time
+void noteLightDelay(int note, int red, int blue, int green, long duration) {
+  buzz.playNote(note, duration);
+  light.switchColor(red, blue, green);
+  delay(duration);
+}
+
+// Play notes and reset 
+void endGame() {
+  noteLightDelay(D3, 150, 0, 200, 1000);
+  noteLightDelay(CSHARP3, 112, 0, 150, 1000);
+  noteLightDelay(C3, 50, 0, 100, 1000);
+  noteLightDelay(B2, 20, 0, 50, 1500);
+  reset();
+}
+
+// Play sound to indicate success
+void playSuccess() {
+  delay(300);
+  buzz.off();
+  delay(1000);
+  noteLightDelay(D5, 0, 150, 0, 150);
+  noteLightDelay(A5, 0, 255, 0, 400);
+  buzz.off();
+  light.off();
+  nextRound();
+}
+
+// Records that a user has pressed a button to check against sequence
+void userMove(int buttonChoice) {
+  if (buttonChoice != trueSequence[userLength]) {
+    userTurn = false;
+    endGame();
+    return;
+  }
+  userLength++;
+  if (userLength == sequenceLength) {
+    userTurn = false;
+    playSuccess();
+  }
+}
+
+void setup() {
+  Serial.begin(9600);
+  randomSeed(analogRead(A0));
+  reset();
+}
+
+void loop() {
+  buzz.update();
+  if (!userTurn) {
+    playSequence();
+  }
+  else {
+    if (redButton.detectStart()){
+      light.switchColor(255, 0, 0);
+      buzz.playNote(C4, 300);
+      userMove(0);
+    }
+    if (yellowButton.detectStart()){
+      light.switchColor(255, 100, 0);
+      buzz.playNote(E4, 300);
+      userMove(1);
+    }
+    if (blueButton.detectStart()){
+      light.switchColor(0, 0, 255); 
+      buzz.playNote(G4, 300); 
+      userMove(2);
+    }
+  }
+}
+
+</pre>
+  
+  <h2>The Product</h2>
+<p>The game ended up turning out pretty well! I added some success and failure sounds, as you can hear in the video!</p>
+  
+<iframe width="948" height="533" src="https://www.youtube.com/embed/2SdIVBZKDvY?start=8" title="final" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
+    
+
+   
+    
   
 
 
