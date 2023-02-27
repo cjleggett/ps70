@@ -2,7 +2,6 @@ const urlParams = new URLSearchParams(window.location.search);
 const first = urlParams.get('first');
 
 if (first !== "False") {
-    console.log("block");
     let proj = document.getElementById("projects");
     console.log(proj.children)
     Array.from(proj.children).forEach((elt, i) => {
