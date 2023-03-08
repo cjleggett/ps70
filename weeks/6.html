@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>Connor x PS70</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <link rel="icon" href="../images/favicon.ico">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
+
+  <link rel="stylesheet" href="../styles.css">
+
+  </head>
+  <body>
+    <a href="../index.html?first=False"><button>Back to Home</button></a>
+
+    <h1>Week 6: Electronic Input Devices</h1>
+    <p>This week, we learned about using various devices in order to measure physical quantities and transfer that information to a digital format in the form of our arduino. For the project, we had to make two sensors, one using the idea of capacitance and another that could sense anything. The rest of this page is split between these two sensors.</p>
+
+    <h2>Capacitive Sensor: Measuring Angles (And Documenting My Failures)</h2>
+    <p>I decided to start with the capacitive sensor because I found this topic more confusing than the other sensors we had talked about. One of my final project ideas includes a wearable sleeve that one could put over their knee to track motion while working in physical therapy, and since right now the thing I'm struggling most with is bending my knee, I decided to try to measure an angle using capacitance.</p>
+
+    <p>I began by wiring a circuit using the tx-rx method, which I chose because it was noted on the website that the other method is typically better for sensing touch, and I assumed my plates would not be touching. I used the wiring suggestion from the course website, and my circuit ended up looking like this:</p>
+    <div class="container">
+      <div class="row">
+          <div class="col-xs-6">
+            <p>Circuit Sketch:</p>
+            <img class="img-thumbnail" src="../images/week6/angle_circuit.jpg" alt="drawing">
+            
+          </div>
+          <div class="col-xs-6">
+            <p>Actual Circuit:</p>
+            <img class="img-thumbnail" src="../images/week6/initial circuit.JPG" alt="initial circuit">
+          </div>
+      </div>
+    </div>
+
+    <p>In order to use this system to detect rotation, I decided to use two half-circles as cotton plates, and then the amount of rotation would determine, how much of the area of those plates is overlapping, which is one determinant of capacitance. I used the laser cutter to print two vinyl circles, and then used a dowel (which I cut and sanded using hand tools) to hold them together. Since there were limited dowels, I chose one, and then measured its thickness with calipers to include in my Fusion360 design. To make the copper plates, I wanted to use the vinyl cutter, but it wasn't working, so I went for an exacto knife instead.</p> 
+
+    <div class="container">
+      <br>
+      <div id="myCarousel" class="carousel slide" data-interval="false">
+        <!-- Indicators -->
+        <ol class="carousel-indicators">
+          <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
+          <li data-target="#myCarousel" data-slide-to="1"></li>
+          <li data-target="#myCarousel" data-slide-to="2"></li>
+          <li data-target="#myCarousel" data-slide-to="3"></li>
+        </ol>
+    
+        <!-- Wrapper for slides -->
+        <div class="carousel-inner" role="listbox">
+    
+          <div class="item active">
+            <img src="../images/week6/caliper.JPG" alt="" width="460" height="345">
+            <div class="carousel-caption light">
+              <h3>Measurement</h3>
+            </div>
+          </div>
+
+          <div class="item">
+            <img src="../images/week6/circle.png" alt="" width="460" height="345">
+            <div class="carousel-caption light">
+              <h3>Fusion Design</h3>
+            </div>
+          </div>
+          <div class="item">
+            <img src="../images/week6/dowell.JPG" alt="" width="460" height="345">
+            <div class="carousel-caption light">
+              <h3>dowel with circles</h3>
+            </div>
+          </div>
+
+          <div class="item">
+            <img src="../images/week6/knife.JPG" alt="" width="460" height="345">
+            <div class="carousel-caption">
+              <h3>knife</h3>
+            </div>
+          </div>
+      
+        </div>
+    
+        <!-- Left and right controls -->
+        <a class="left carousel-control" href="#myCarousel" role="button" data-slide="prev">
+          <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+          <span class="sr-only">Previous</span>
+        </a>
+        <a class="right carousel-control" href="#myCarousel" role="button" data-slide="next">
+          <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+          <span class="sr-only">Next</span>
+        </a>
+      </div>
+    </div>
+
+    <p>Next, I put everything together roughly, and started coding. It took me a while to transfer the example code (which uses a delay, to a class that doesn't need one). I ended up having to store an array as part of my class which kept track of the measurements taken every 50 microseconds, and then using a method that takes the average of the list to return a value. My result is lain out below:</p>
+
+    <div class="container">
+      <div class="row">
+          <div class="col-xs-6">
+            <p>Sensor.cpp</p>
+            <pre class="prettyprint lang-cpp">
+#include "Sensor.h"
+#include <Arduino.h>
+#include "Constants.h"
+
+Sensor :: Sensor(int tx, int rx)
+{
+  previous_time = micros();
+  tx_pin = tx;
+  rx_pin = rx;
+  current = 0;
+  waiting = false;
+}
+
+int Sensor :: sense()
+{
+  int sum = 0;
+  for (int i = 0; i < N_SAMPLES; i++)
+  {
+    sum += values[i];
+  }
+  return sum;
+}
+
+void Sensor :: update()
+{
+  // Send Signal at high level and record output
+  if (!waiting)
+  {
+    digitalWrite(tx_pin, HIGH);
+    read_high = analogRead(rx_pin);
+    previous_time = micros();
+    waiting = true;
+  }
+  
+
+  // After waiting, send Signal at low level and record output
+  if (waiting && micros() - previous_time > 100)
+  {
+    digitalWrite(tx_pin, LOW);
+    int read_low = analogRead(rx_pin);
+    values[current] = read_high - read_low;
+    current = (current + 1) % N_SAMPLES;
+    waiting = false;
+  }
+}
+                  </pre>
+            
+          </div>
+          <div class="col-xs-6">
+            <p>Sensor.h</p>
+            <pre class="prettyprint lang-cpp">
+#ifndef SENSOR_H
+#define SENSOR_H
+#include <Arduino.h>
+#include "Constants.h"
+
+class Sensor
+{
+  private:
+    long previous_time;
+    int tx_pin;
+    int rx_pin;
+    int read_high;
+    bool waiting;
+    int current;
+    int values[N_SAMPLES];
+
+  public:
+    Sensor(int tx, int rx);
+    int sense();
+    void update();
+};
+
+#endif
+            </pre>
+          </div>
+      </div>
+    </div>
+
+    
+    <p>And here's the client code:</p>
+    <pre class="prettyprint lang-cpp">
+#include "Sensor.h"
+
+long result;   //variable for the result of the tx_rx measurement.
+int analog_pin = A3;
+int tx_pin = 4;
+Sensor sensor = Sensor(tx_pin, analog_pin);
+
+void setup() {
+    pinMode(tx_pin, OUTPUT);      //Pin 4 provides the voltage step
+    Serial.begin(9600);
+}
+
+void loop() {
+  sensor.update();
+  result = sensor.sense()
+  Serial.println(result);
+}
+    </pre>
+
+    <p>The code was working just as the other code, but I wasn't getting the sensitivity I wanted. Nathan told me it could be because my wires were too long and I was using aligator clips, so I decided to pare down my design by soldering parts together. My first soldering job was pitiful, but I think I did alright on the other ones, and eventually got a much smaller design!</p>
+
+    <img class="img-thumbnail half" src="../images/week6/solder2.JPG" alt="support">
+
+    <img class="img-thumbnail half" src="../images/week6/solder1.JPG" alt="support">
+
+    <img class="img-thumbnail half" src="../images/week6/final.JPG" alt="support">
+
+    <p>I then recorded data on different angles, and got the following chart:</p>
+    
+
+    <img class="img-thumbnail" src="../images/week6/Capacitance vs. Degrees.png" alt="support">
+
+    <p>So, the project didn't go as planned. I think the main problem is that the capacitance wasn't sensitive enough to the change in area of overlap, partially because there was nothing guarding the plates from each other, so even when they were as far as possible away, there was still some capacitance between them. In the future, this could possible be solved by blocking off the edges of the half-circles, which would require printing four half circles and then attaching them later. For my purposes though, I think I've learned that capacitance is not the best way to detect an angle for my project.</p>
+
+
+
+    <h2>Color Sensor</h2>
+
+    <p>I'm thinking about having a vehicle that can detect color for my final project and change direction based on that color. There are color detectors out there that I could buy, but I wanted to try making one myself. The theory is that you can shine a light on a color, and based on how much light is reflected back, we can tell what color it was using a photoresistor. After I got a basic photoresistor working, I realised I was getting a lot of noise from surrounding light and inconsistent distances, so to standardize this, I decided to 3-D print a container that would have a photoresistor in the middle and 4 LED lights surrounding it. The 3-D design is included below, along with a picture of the outcome:</p>
+
+
+  </body>
+</html>
