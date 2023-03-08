@@ -72,6 +72,10 @@ body {
     animation: fadeIn 10s;
 }
 
+.appear6 {
+    animation: fadeIn 10.25s;
+}
+
 @keyframes fadeIn {
     0% { opacity: 0; }
     66% {opacity: 0; }
