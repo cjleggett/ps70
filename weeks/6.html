@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>Connor x PS70</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <link rel="icon" href="../images/favicon.ico">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
+
+  <link rel="stylesheet" href="../styles.css">
+
+  </head>
+  <body>
+    <a href="../index.html?first=False"><button>Back to Home</button></a>
+
+    <h1>Week 6: Electronic Input Devices</h1>
+    <p>This week, we learned about using various devices in order to measure physical quantities and transfer that information to a digital format in the form of our arduino. For the project, we had to make two sensors, one using the idea of capacitance and another that could sense anything. The rest of this page is split between these two sensors.</p>
+
+    <h2>Capacitive Sensor: Measuring Angles (And Documenting My Failures)</h2>
+    <p>I decided to start with the capacitive sensor because I found this topic more confusing than the other sensors we had talked about. One of my final project ideas includes a wearable sleeve that one could put over their knee to track motion while working in physical therapy, and since right now the thing I'm struggling most with is bending my knee, I decided to try to measure an angle using capacitance.</p>
+
+    <p>I began by wiring a circuit using the tx-rx method, which I chose because it was noted on the website that the other method is typically better for sensing touch, and I assumed my plates would not be touching. I used the wiring suggestion from the course website, and my circuit ended up looking like this:</p>
+    <div class="container">
+      <div class="row">
+          <div class="col-xs-6">
+            <p>Circuit Sketch:</p>
+            <img class="img-thumbnail" src="../images/week6/angle_circuit.jpg" alt="drawing">
+            
+          </div>
+          <div class="col-xs-6">
+            <p>Actual Circuit:</p>
+            <img class="img-thumbnail" src="../images/week6/initial circuit.JPG" alt="initial circuit">
+          </div>
+      </div>
+    </div>
+
+    <p>In order to use this system to detect rotation, I decided to use two half-circles as cotton plates, and then the amount of rotation would determine, how much of the area of those plates is overlapping, which is one determinant of capacitance. I used the laser cutter to print two vinyl circles, and then used a dowel (which I cut and sanded using hand tools) to hold them together. Since there were limited dowels, I chose one, and then measured its thickness with calipers to include in my Fusion360 design. To make the copper plates, I wanted to use the vinyl cutter, but it wasn't working, so I went for an exacto knife instead.</p> 
+
+    <div class="container">
+      <br>
+      <div id="myCarousel" class="carousel slide" data-interval="false">
+        <!-- Indicators -->
+        <ol class="carousel-indicators">
+          <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
+          <li data-target="#myCarousel" data-slide-to="1"></li>
+          <li data-target="#myCarousel" data-slide-to="2"></li>
+          <li data-target="#myCarousel" data-slide-to="3"></li>
+        </ol>
+    
+        <!-- Wrapper for slides -->
+        <div class="carousel-inner" role="listbox">
+    
+          <div class="item active">
+            <img src="../images/week6/caliper.JPG" alt="" width="460" height="345">
+            <div class="carousel-caption light">
+              <h3>Measurement</h3>
+            </div>
+          </div>
+
+          <div class="item">
+            <img src="../images/week6/circle.png" alt="" width="460" height="345">
+            <div class="carousel-caption light">
+              <h3>Fusion Design</h3>
+            </div>
+          </div>
+          <div class="item">
+            <img src="../images/week6/dowell.JPG" alt="" width="460" height="345">
+            <div class="carousel-caption light">
+              <h3>dowel with circles</h3>
+            </div>
+          </div>
+
+          <div class="item">
+            <img src="../images/week6/knife.JPG" alt="" width="460" height="345">
+            <div class="carousel-caption">
+              <h3>knife</h3>
+            </div>
+          </div>
+      
+        </div>
+    
+        <!-- Left and right controls -->
+        <a class="left carousel-control" href="#myCarousel" role="button" data-slide="prev">
+          <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+          <span class="sr-only">Previous</span>
+        </a>
+        <a class="right carousel-control" href="#myCarousel" role="button" data-slide="next">
+          <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+          <span class="sr-only">Next</span>
+        </a>
+      </div>
+    </div>
+
+    <p>Next, I put everything together roughly, and started coding. It took me a while to transfer the example code (which uses a delay, to a class that doesn't need one). I ended up having to store an array as part of my class which kept track of the measurements taken every 50 microseconds, and then using a method that takes the average of the list to return a value. My result is lain out below:</p>
+
+    <div class="container">
+      <div class="row">
+          <div class="col-xs-6">
+            <p>Sensor.cpp</p>
+            <pre class="prettyprint lang-cpp">
+#include "Sensor.h"
+#include <Arduino.h>
+#include "Constants.h"
+
+Sensor :: Sensor(int tx, int rx)
+{
+  previous_time = micros();
+  tx_pin = tx;
+  rx_pin = rx;
+  current = 0;
+  waiting = false;
+}
+
+int Sensor :: sense()
+{
+  int sum = 0;
+  for (int i = 0; i < N_SAMPLES; i++)
+  {
+    sum += values[i];
+  }
+  return sum;
+}
+
+void Sensor :: update()
+{
+  // Send Signal at high level and record output
+  if (!waiting)
+  {
+    digitalWrite(tx_pin, HIGH);
+    read_high = analogRead(rx_pin);
+    previous_time = micros();
+    waiting = true;
+  }
+  
+
+  // After waiting, send Signal at low level and record output
+  if (waiting && micros() - previous_time > 100)
+  {
+    digitalWrite(tx_pin, LOW);
+    int read_low = analogRead(rx_pin);
+    values[current] = read_high - read_low;
+    current = (current + 1) % N_SAMPLES;
+    waiting = false;
+  }
+}
+                  </pre>
+            
+          </div>
+          <div class="col-xs-6">
+            <p>Sensor.h</p>
+            <pre class="prettyprint lang-cpp">
+#ifndef SENSOR_H
+#define SENSOR_H
+#include <Arduino.h>
+#include "Constants.h"
+
+class Sensor
+{
+  private:
+    long previous_time;
+    int tx_pin;
+    int rx_pin;
+    int read_high;
+    bool waiting;
+    int current;
+    int values[N_SAMPLES];
+
+  public:
+    Sensor(int tx, int rx);
+    int sense();
+    void update();
+};
+
+#endif
+            </pre>
+          </div>
+      </div>
+    </div>
+
+    
+    <p>And here's the client code:</p>
+    <pre class="prettyprint lang-cpp">
+#include "Sensor.h"
+
+long result;   //variable for the result of the tx_rx measurement.
+int analog_pin = A3;
+int tx_pin = 4;
+Sensor sensor = Sensor(tx_pin, analog_pin);
+
+void setup() {
+    pinMode(tx_pin, OUTPUT);      //Pin 4 provides the voltage step
+    Serial.begin(9600);
+}
+
+void loop() {
+  sensor.update();
+  result = sensor.sense()
+  Serial.println(result);
+}
+    </pre>
+
+    <p>The code was working just as the other code, but I wasn't getting the sensitivity I wanted. Nathan told me it could be because my wires were too long and I was using aligator clips, so I decided to pare down my design by soldering parts together. My first soldering job was pitiful, but I think I did alright on the other ones, and eventually got a much smaller design!</p>
+
+    <img class="img-thumbnail half" src="../images/week6/solder2.JPG" alt="support">
+
+    <img class="img-thumbnail half" src="../images/week6/solder1.JPG" alt="support">
+
+    <img class="img-thumbnail half" src="../images/week6/final.JPG" alt="support">
+
+    <p>I then recorded data on different angles, and got the following chart:</p>
+    
+
+    <img class="img-thumbnail" src="../images/week6/Capacitance vs. Degrees.png" alt="support">
+
+    <p>So, the project didn't go as planned. I think the main problem is that the capacitance wasn't sensitive enough to the change in area of overlap, partially because there was nothing guarding the plates from each other, so even when they were as far as possible away, there was still some capacitance between them. In the future, this could possible be solved by blocking off the edges of the half-circles, which would require printing four half circles and then attaching them later. For my purposes though, I think I've learned that capacitance is not the best way to detect an angle for my project.</p>
+
+
+
+    <h2>Color Shade Sensor</h2>
+
+    <p>I'm thinking about having a vehicle that can detect color for my final project and change direction based on that color. There are color detectors out there that I could buy, but I wanted to try making one myself. The theory is that you can shine a light on a color, and based on how much light is reflected back, we can tell how dark or light that color is using a photoresistor. After I got a basic photoresistor working, I realised I was getting a lot of noise from surrounding light and inconsistent distances, so to standardize this, I decided to 3-D print a container that would have a photoresistor in the middle and 4 LED lights surrounding it. The 3-D design is included below, along with a picture of the outcome:</p>
+
+    <iframe id="vs_iframe" src="https://www.viewstl.com/?embedded&url=https%3A%2F%2Fgithub.com%2Fcjleggett%2Fps70%2Fraw%2Fmain%2Ffiles%2Fweek6%2Fbox.stl" style="border:0;margin:0;width:100%;height:100%;"></iframe>
+
+    <img class="img-thumbnail half" src="../images/week6/3dprint.JPG" alt="support">
+
+    <p>Next I wired up the photoresistor as shown here:</p>
+    
+    <img class="img-thumbnail half" src="../images/week6/sensor_circuit.jpg" alt="support">
+
+    <p>And then I wired up the lights as shown here:</p>
+    <img class="img-thumbnail half" src="../images/week6/light_circuit.jpg" alt="support">
+
+    <p>Once the print was done, I was able to shift the wiring into the device, using the small holes left in the top for wires. I spent a bit of time soldering these to wires and then soldering in resistors, which was really good practice for me, as I can solder much more efficiently now. I was able to connect all the grounds on the device, saving a lot of wires, but I realized too late I should have done that for the power source for the LEDs as well, as those wires were a bit messy. Making the finshed design a bit neater is something I could certainly work on, and I think I did a bit better than usual with this one but should still spend more time on it in future weeks. I've included a few pictures here below:</p>
+
+    <div class="container">
+      <br>
+      <div id="myCarousel1" class="carousel slide" data-interval="false">
+        <!-- Indicators -->
+        <ol class="carousel-indicators">
+          <li data-target="#myCarousel1" data-slide-to="0" class="active"></li>
+          <li data-target="#myCarousel1" data-slide-to="1"></li>
+          <li data-target="#myCarousel1" data-slide-to="2"></li>
+        </ol>
+    
+        <!-- Wrapper for slides -->
+        <div class="carousel-inner" role="listbox">
+    
+          <div class="item active">
+            <img src="../images/week6/top.JPG" alt="" width="460" height="345">
+            <div class="carousel-caption light">
+              <h3>Entire device</h3>
+            </div>
+          </div>
+
+          <div class="item">
+            <img src="../images/week6/bottom.JPG" alt="" width="460" height="345">
+            <div class="carousel-caption light">
+              <h3>View looking up into device</h3>
+            </div>
+          </div>
+          <div class="item">
+            <img src="../images/week6/side.JPG" alt="" width="460" height="345">
+            <div class="carousel-caption light">
+              <h3>Side view</h3>
+            </div>
+          </div>
+
+      
+        </div>
+    
+        <!-- Left and right controls -->
+        <a class="left carousel-control" href="#myCarousel1" role="button" data-slide="prev">
+          <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+          <span class="sr-only">Previous</span>
+        </a>
+        <a class="right carousel-control" href="#myCarousel1" role="button" data-slide="next">
+          <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+          <span class="sr-only">Next</span>
+        </a>
+      </div>
+    </div>
+
+    <p>I next tested it out with different colors of vinyl, and got these results:</p>
+
+    <img class="thumbnail" src="../images/week6/Resistance Value vs. Color.png" alt="graph">
+
+    <p>Finally, using these results, I calibrated my code to be able to detect the vinyl color!</p>
+
+
+    <div class="container">
+      <div class="row">
+          <div class="col-xs-6">
+            <p>ColorDetector.h</p>
+            <pre class="prettyprint lang-cpp">
+#ifndef COLORDETECTOR_H
+#define COLORDETECTOR_H
+#include <Arduino.h>
+
+class ColorDetector
+{
+  private:
+    int led_pins[4];
+    int sensor_pin;
+    void start_lights();
+    char *val_to_color(int value);
+
+  public:
+    ColorDetector(int sensor_pin, int led1, int led2, int led3, int led4);
+    char *detect();
+};
+
+#endif
+            </pre>
+          </div>
+        <div class="col-xs-6">
+          <p>ColorDetector.cpp</p>
+          <pre class="prettyprint lang-cpp">
+#include "ColorDetector.h"
+#include <Arduino.h>
+
+ColorDetector :: ColorDetector(int sense_pin, int led1, int led2, int led3, int led4)
+{
+  sensor_pin = sense_pin;
+  led_pins[0] = led1;
+  led_pins[1] = led2;
+  led_pins[2] = led3;
+  led_pins[3] = led4;
+  start_lights();
+}
+
+void ColorDetector :: start_lights()
+{
+  for (int i = 0; i < 4; i++) {
+    digitalWrite(led_pins[i], HIGH);
+  }
+}
+
+char *ColorDetector :: val_to_color(int value)
+{
+  if (value > 875 && value < 880){
+    return "RED";
+  }
+  if (value > 820 && value < 825){
+    return "BLUE";
+  }
+  if (value > 815 && value < 819){
+    return "GREEN";
+  }
+    if (value > 975 && value < 980){
+    return "YELLOW";
+  }  
+    if (value > 788 && value < 793){
+    return "BLACK";
+  }
+
+  return "UNSURE";
+}
+
+char *ColorDetector :: detect()
+{
+  int value = analogRead(sensor_pin);
+  return val_to_color(value);
+}
+          </pre>
+        </div>
+    </div>
+    </div>
+
+
+
+<p>Overall, I'm prretty happy with how this sensor turned out! I would need to expand it to differentiate between colors, but it was extremely accurate when doing what it was built to do!</p>
+
+
+
+
+  </body>
+</html>
