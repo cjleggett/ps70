@@ -219,9 +219,162 @@ void loop() {
 
 
 
-    <h2>Color Sensor</h2>
+    <h2>Color Shade Sensor</h2>
 
-    <p>I'm thinking about having a vehicle that can detect color for my final project and change direction based on that color. There are color detectors out there that I could buy, but I wanted to try making one myself. The theory is that you can shine a light on a color, and based on how much light is reflected back, we can tell what color it was using a photoresistor. After I got a basic photoresistor working, I realised I was getting a lot of noise from surrounding light and inconsistent distances, so to standardize this, I decided to 3-D print a container that would have a photoresistor in the middle and 4 LED lights surrounding it. The 3-D design is included below, along with a picture of the outcome:</p>
+    <p>I'm thinking about having a vehicle that can detect color for my final project and change direction based on that color. There are color detectors out there that I could buy, but I wanted to try making one myself. The theory is that you can shine a light on a color, and based on how much light is reflected back, we can tell how dark or light that color is using a photoresistor. After I got a basic photoresistor working, I realised I was getting a lot of noise from surrounding light and inconsistent distances, so to standardize this, I decided to 3-D print a container that would have a photoresistor in the middle and 4 LED lights surrounding it. The 3-D design is included below, along with a picture of the outcome:</p>
+
+    <iframe id="vs_iframe" src="https://www.viewstl.com/?embedded&url=https%3A%2F%2Fgithub.com%2Fcjleggett%2Fps70%2Fraw%2Fmain%2Ffiles%2Fweek6%2Fbox.stl" style="border:0;margin:0;width:100%;height:100%;"></iframe>
+
+    <img class="img-thumbnail half" src="../images/week6/3dprint.JPG" alt="support">
+
+    <p>Next I wired up the photoresistor as shown here:</p>
+    
+    <img class="img-thumbnail half" src="../images/week6/sensor_circuit.jpg" alt="support">
+
+    <p>And then I wired up the lights as shown here:</p>
+    <img class="img-thumbnail half" src="../images/week6/light_circuit.jpg" alt="support">
+
+    <p>Once the print was done, I was able to shift the wiring into the device, using the small holes left in the top for wires. I spent a bit of time soldering these to wires and then soldering in resistors, which was really good practice for me, as I can solder much more efficiently now. I was able to connect all the grounds on the device, saving a lot of wires, but I realized too late I should have done that for the power source for the LEDs as well, as those wires were a bit messy. Making the finshed design a bit neater is something I could certainly work on, and I think I did a bit better than usual with this one but should still spend more time on it in future weeks. I've included a few pictures here below:</p>
+
+    <div class="container">
+      <br>
+      <div id="myCarousel1" class="carousel slide" data-interval="false">
+        <!-- Indicators -->
+        <ol class="carousel-indicators">
+          <li data-target="#myCarousel1" data-slide-to="0" class="active"></li>
+          <li data-target="#myCarousel1" data-slide-to="1"></li>
+          <li data-target="#myCarousel1" data-slide-to="2"></li>
+        </ol>
+    
+        <!-- Wrapper for slides -->
+        <div class="carousel-inner" role="listbox">
+    
+          <div class="item active">
+            <img src="../images/week6/top.JPG" alt="" width="460" height="345">
+            <div class="carousel-caption light">
+              <h3>Entire device</h3>
+            </div>
+          </div>
+
+          <div class="item">
+            <img src="../images/week6/bottom.JPG" alt="" width="460" height="345">
+            <div class="carousel-caption light">
+              <h3>View looking up into device</h3>
+            </div>
+          </div>
+          <div class="item">
+            <img src="../images/week6/side.JPG" alt="" width="460" height="345">
+            <div class="carousel-caption light">
+              <h3>Side view</h3>
+            </div>
+          </div>
+
+      
+        </div>
+    
+        <!-- Left and right controls -->
+        <a class="left carousel-control" href="#myCarousel1" role="button" data-slide="prev">
+          <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+          <span class="sr-only">Previous</span>
+        </a>
+        <a class="right carousel-control" href="#myCarousel1" role="button" data-slide="next">
+          <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+          <span class="sr-only">Next</span>
+        </a>
+      </div>
+    </div>
+
+    <p>I next tested it out with different colors of vinyl, and got these results:</p>
+
+    <img class="thumbnail" src="../images/week6/Resistance Value vs. Color.png" alt="graph">
+
+    <p>Finally, using these results, I calibrated my code to be able to detect the vinyl color!</p>
+
+
+    <div class="container">
+      <div class="row">
+          <div class="col-xs-6">
+            <p>ColorDetector.h</p>
+            <pre class="prettyprint lang-cpp">
+#ifndef COLORDETECTOR_H
+#define COLORDETECTOR_H
+#include <Arduino.h>
+
+class ColorDetector
+{
+  private:
+    int led_pins[4];
+    int sensor_pin;
+    void start_lights();
+    char *val_to_color(int value);
+
+  public:
+    ColorDetector(int sensor_pin, int led1, int led2, int led3, int led4);
+    char *detect();
+};
+
+#endif
+            </pre>
+          </div>
+        <div class="col-xs-6">
+          <p>ColorDetector.cpp</p>
+          <pre class="prettyprint lang-cpp">
+#include "ColorDetector.h"
+#include <Arduino.h>
+
+ColorDetector :: ColorDetector(int sense_pin, int led1, int led2, int led3, int led4)
+{
+  sensor_pin = sense_pin;
+  led_pins[0] = led1;
+  led_pins[1] = led2;
+  led_pins[2] = led3;
+  led_pins[3] = led4;
+  start_lights();
+}
+
+void ColorDetector :: start_lights()
+{
+  for (int i = 0; i < 4; i++) {
+    digitalWrite(led_pins[i], HIGH);
+  }
+}
+
+char *ColorDetector :: val_to_color(int value)
+{
+  if (value > 875 && value < 880){
+    return "RED";
+  }
+  if (value > 820 && value < 825){
+    return "BLUE";
+  }
+  if (value > 815 && value < 819){
+    return "GREEN";
+  }
+    if (value > 975 && value < 980){
+    return "YELLOW";
+  }  
+    if (value > 788 && value < 793){
+    return "BLACK";
+  }
+
+  return "UNSURE";
+}
+
+char *ColorDetector :: detect()
+{
+  int value = analogRead(sensor_pin);
+  return val_to_color(value);
+}
+          </pre>
+        </div>
+    </div>
+    </div>
+
+
+
+<p>Overall, I'm prretty happy with how this sensor turned out! I would need to expand it to differentiate between colors, but it was extremely accurate when doing what it was built to do!</p>
+
+
 
 
   </body>
