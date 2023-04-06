@@ -84,10 +84,14 @@ body {
     animation: fadeIn 10.75s;
 }
 
+.appear9 {
+    animation: fadeIn 11s;
+}
+
 @keyframes fadeIn {
     0% { opacity: 0; }
     66% {opacity: 0; }
-    80% {opacity: 1; }
+    70% {opacity: 1; }
     100% { opacity: 1; }
 }
 
